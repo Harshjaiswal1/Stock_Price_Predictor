@@ -19,7 +19,7 @@ model = load_model("Latest_stock_price_model.keras")
 st.subheader("Stock Data")
 st.write(google_data)
 
-splitting_len = int(len(google_data)*0.7)
+splitting_len = int(len(google_data)*0.8)
 x_test = google_data[['Close']].iloc[splitting_len:]  # <-- FIXED
 
 def plot_graph(figsize, values, full_data, extra_data=0, extra_dataset=None):
@@ -32,6 +32,7 @@ def plot_graph(figsize, values, full_data, extra_data=0, extra_dataset=None):
     plt.ylabel("Price")
     plt.legend()
     return fig
+
 
 st.subheader('Original Close Price and MA for 250 days')
 google_data['MA_for_250_days'] = google_data.Close.rolling(250).mean()
@@ -86,3 +87,18 @@ plt.xlabel("Date")
 plt.ylabel("Price")
 plt.legend()
 st.pyplot(fig)
+
+# Show Latest Prediction
+st.subheader("Latest Predicted Price")
+latest_pred = ploting_data['predictions'].iloc[-1]
+latest_date = ploting_data.index[-1]
+st.write(f"**{stock} predicted price on {latest_date.date()}: {latest_pred:.2f}**")
+
+# Predict price for tomorrow
+st.subheader("Predicted Price for Tomorrow")
+last_100 = google_data['Close'][-100:].values.reshape(-1, 1)
+scaled_last_100 = scaler.transform(last_100)
+scaled_last_100 = scaled_last_100.reshape(1, 100, 1)
+tomorrow_pred_scaled = model.predict(scaled_last_100)
+tomorrow_pred = scaler.inverse_transform(tomorrow_pred_scaled)[0][0]
+st.write(f"**Predicted price for tomorrow: {tomorrow_pred:.2f}**")
