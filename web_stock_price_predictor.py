@@ -5,7 +5,6 @@ from keras.models import load_model
 import matplotlib.pyplot as plt
 import yfinance as yf
 
-st.title("Stock Price Predictor App")
 
 stock = st.text_input("Enter the Stock ID", "GOOG")
 
@@ -20,7 +19,19 @@ st.subheader("Stock Data")
 st.write(google_data)
 
 splitting_len = int(len(google_data)*0.8)
-x_test = google_data[['Close']].iloc[splitting_len:]  # <-- FIXED
+x_test = google_data[['Close']].iloc[splitting_len:]
+
+# Check for empty or all-NaN data
+if x_test.empty or x_test['Close'].isnull().all():
+    st.error("Test data is empty or contains only NaN values. Please check your data and splitting logic.")
+    st.stop()
+
+# Optionally, drop NaNs (if you want to proceed with available data)
+x_test = x_test.dropna()
+
+if len(x_test) < 100:
+    st.error("Not enough data in test set after dropping NaNs. Need at least 100 rows.")
+    st.stop()
 
 def plot_graph(figsize, values, full_data, extra_data=0, extra_dataset=None):
     fig = plt.figure(figsize=figsize)
